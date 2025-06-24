@@ -208,8 +208,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 150,
-      "height": 150
+      "width": 100,
+      "height": 100
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -232,6 +232,9 @@
     "_enabled": true,
     "__prefab": {
       "__id__": 11
+    },
+    "spriteRenderer": {
+      "__id__": 5
     },
     "_id": ""
   },

@@ -1,29 +1,35 @@
-import { _decorator, Node, Component, Prefab } from "cc";
-import { Reel } from "./Reel";
+import { _decorator, Node, Component, Prefab, instantiate } from "cc";
 import { SymbolType } from "../Core/Interface";
+import { DataManager } from "../Core/DataManager";
+import { EventManager, EventType } from "../Core/EventManaget";
 
 const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
 export class GameManager extends Component {
-    @property(Reel) reels: Reel[] = [];
     @property(Node) btnPlay: Node = null;
-    @property(Prefab) symbolPrefab: Prefab = null;
+    @property(Node) reelContainer: Node = null;
     @property(Prefab) reelPrefab: Prefab = null;
+    @property(Prefab) symbolPrefab: Prefab = null;
 
     public static Instance: GameManager = null;
-    private totalItemType: number = 0;
     private columns: number = 5;
     private rows: number = 4;
+    private _result: SymbolType[][];
 
     onLoad() {
         GameManager.Instance = this;
 
-        this.totalItemType = Object.keys(SymbolType).length;
-
         this.btnPlay.on(Node.EventType.TOUCH_END, () => {
             this.startGame();
         });
+    }
+
+    start() {
+        for (let i = 0; i < this.columns; i++) {
+            let gameObject = instantiate(this.reelPrefab);
+            this.reelContainer.addChild(gameObject);
+        }
     }
 
     public getPrefabSlotItem() {
@@ -32,23 +38,19 @@ export class GameManager extends Component {
 
     startGame() {
         // Get result
-        var result = this.createResult();
+        this._result = this.createResult();
 
         // Render result
-        this.reels.forEach((reel) => {
-            reel.startSpin();
-        });
+        EventManager.emitter.emit(EventType.START_SPIN);
     }
 
     createResult() {
-        const result = [];
-        const columns = 5;
-        const rows = 4;
+        const result: SymbolType[][] = [];
 
-        for (let i = 0; i < columns; i++) {
-            const columnResult = [];
+        for (let i = 0; i < this.columns; i++) {
+            const columnResult: SymbolType[] = [];
 
-            for (let j = 0; j < rows; j++) {
+            for (let j = 0; j < this.rows; j++) {
                 let randomType = this.randomItemType();
                 columnResult.push(randomType)
             }
@@ -60,8 +62,9 @@ export class GameManager extends Component {
     }
 
     randomItemType() {
-        let random = Math.floor(Math.random() * this.totalItemType);
-        let type = SymbolType[random];
+        let length = DataManager.Instance.slots.length;
+        let random = Math.floor(Math.random() * length);
+        let type = SymbolType[SymbolType[random]];
         return type;
     }
 }
