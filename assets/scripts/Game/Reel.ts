@@ -8,7 +8,6 @@ const { ccclass, property } = _decorator;
 
 enum ReelState {
     Idle,
-    StartSpin,
     LoopSpin,
     EndSpin,
 }
@@ -23,10 +22,19 @@ export class Reel extends Component {
     private endLoopTimestamp: number = 0;
     private state: ReelState = ReelState.Idle;
     private delay: number = 1;
+    private columnIndex: number = 0;
+
+    get IsLastColumn() {
+        return this.columnIndex == 4;
+    }
 
     onLoad() {
         EventManager.emitter.on(EventType.START_SPIN, () => {
             this.startSpin();
+        });
+
+        EventManager.emitter.on(EventType.END_SPIN, () => {
+            this.state = ReelState.Idle;
         });
     }
 
@@ -43,10 +51,19 @@ export class Reel extends Component {
 
             if (position.y <= maxPosY) {
                 position.y -= maxPosY;
+
+                if (Date.now() > this.endLoopTimestamp) {
+                    this.showResult();
+                }
             }
 
             this.node.position = position;
         }
+    }
+
+    setValue(delay: number, index: number) {
+        this.delay = delay;
+        this.columnIndex = index;
     }
 
     initItems() {
@@ -62,17 +79,35 @@ export class Reel extends Component {
         }
     }
 
-    public startSpin() {
+    public async startSpin() {
         if (this.state != ReelState.Idle) return;
 
-        this.endLoopTimestamp = Date.now() + this.delay * 1000;
+        await new Promise(res => this.schedule(res, this.delay))
+
+        this.endLoopTimestamp = Date.now() + Reel.loopSpinTime * 1000;
         this.state = ReelState.LoopSpin;
     }
 
     public showResult() {
         if (this.state != ReelState.LoopSpin) return;
 
+        this.state = ReelState.EndSpin;
 
+        let result = GameManager.Instance.getGameResultByColumn(this.columnIndex);
+
+        for (let i = 0; i < result.length; i++) {
+            let slotItem = this.node.children[i].getComponent(SlotItem)
+            slotItem.Init(result[i]);
+        }
+
+        var position = this.node.position.clone();
+        position.y = 0;
+
+        tween(this.node).to(0.2, { position: position }).call(() => {
+            if (this.IsLastColumn) {
+                EventManager.emitter.emit(EventType.END_SPIN);
+            }
+        }).start();
     }
 }
 

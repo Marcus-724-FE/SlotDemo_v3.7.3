@@ -2,6 +2,7 @@ import { _decorator, Node, Component, Prefab, instantiate } from "cc";
 import { SymbolType } from "../Core/Interface";
 import { DataManager } from "../Core/DataManager";
 import { EventManager, EventType } from "../Core/EventManaget";
+import { Reel } from "./Reel";
 
 const { ccclass, property } = _decorator;
 
@@ -29,11 +30,18 @@ export class GameManager extends Component {
         for (let i = 0; i < this.columns; i++) {
             let gameObject = instantiate(this.reelPrefab);
             this.reelContainer.addChild(gameObject);
+
+            let reel = gameObject.getComponent(Reel);
+            reel.setValue(i * 0.3, i);
         }
     }
 
     public getPrefabSlotItem() {
         return this.symbolPrefab;
+    }
+
+    public getGameResultByColumn(index: number) {
+        return this._result[index];
     }
 
     startGame() {
