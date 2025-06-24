@@ -33,8 +33,10 @@ export class GameManager extends Component {
             this.startGame();
         });
 
-        EventManager.emitter.on(EventType.END_SPIN, () => {
-            this.showAllPaylines();
+        EventManager.emitter.on(EventType.END_SPIN, async () => {
+            await new Promise(res => this.scheduleOnce(res, 0.25));
+
+            await this.showAllPaylines();
 
             this.state = GameState.Idle
         });
@@ -68,7 +70,7 @@ export class GameManager extends Component {
     showSinglePayline(payline: number[]) {
         EventManager.emitter.emit(EventType.SHOW_PAYLINE, payline);
 
-        return new Promise(res => this.scheduleOnce(res, 2));
+        return new Promise(res => this.scheduleOnce(res, 1.5));
     }
 
     startGame() {
