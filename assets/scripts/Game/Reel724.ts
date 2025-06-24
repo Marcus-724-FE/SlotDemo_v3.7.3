@@ -100,12 +100,12 @@ export class Reel extends Component {
 
         this.endLoopTimestamp = Date.now() + Reel.loopSpinTime * 1000;
         this.state = ReelState.LoopSpin;
+        this.needRerender = true;
     }
 
     public showResult() {
         if (this.state != ReelState.LoopSpin) return;
 
-        this.needRerender = true;
         this.state = ReelState.EndSpin;
 
         let result = GameManager.Instance.getGameResultByColumn(this.columnIndex);
